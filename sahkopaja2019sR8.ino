@@ -1,7 +1,7 @@
 #include <Servo.h>
 #include <SD.h>
-#define SD_ChipSelectPin 10
-#include <TMRpcm.h>
+#define SD_ChipSelectPin 10 //SD-kortinlukijan käyttämä pin
+#include <TMRpcm.h> //ääniefektin soittamiseen käytettävä kirjasto, netistä
 #include <SPI.h>
 
 TMRpcm sound;
@@ -11,33 +11,34 @@ int servoPin = 8;
 
 int pos = 0;
 
-int buttonPin = 2;
-int buttonState = LOW;
+//nappia käytettiin testausvaiheessa
+//int buttonPin = 2;
+//int buttonState = LOW;
 
-int sol = 7;
+int sol = 7;  //kaikki neljä solenoidia sarjaan kytkettynä yhdessä pinissä
 int solState = LOW;
 
-//Led
+//Ledit kahdessa pinissä molemmissa kaksi lediä sarjaan kytkettynä
 int led1 = 4;
 int led2 = 5;
 
 
 void setup() {
   myservo.attach(servoPin);
-  myservo.write(0);
+  myservo.write(0); 
   pinMode(sol, OUTPUT);
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
-  pinMode(buttonPin, INPUT);
+  //pinMode(buttonPin, INPUT);
 
   sound.speakerPin = 9;
   Serial.begin(9600);
     if (!SD.begin(SD_ChipSelectPin)) {
-      Serial.println("SD fail");
+      Serial.println("SD fail");  //jos kortti ei ole kiinni, lopeteaan ja ilmoitetaan serial monitorissa
       return;
     }
 
-  sound.setVolume(7);
+  sound.setVolume(7); //maksimivolyymi
   
 
   Serial.begin(9600);
@@ -45,7 +46,7 @@ void setup() {
 }
 
 void cannonsOut() {
-  for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees in steps of 1 degree
+  for (pos = 0; pos <= 180; pos += 1) { // servo pyörii 180 astetta hitaasti
     myservo.write(pos);
     delay(10);
   }
@@ -55,8 +56,8 @@ void cannonsOut() {
 
 void fire() {  
 
-  myservo.detach();
-  sound.play("cannon.wav");
+  myservo.detach(); //servo- ja TMRpcm-kirjastot eivät pelitä samaan aikaan :(
+  sound.play("cannon.wav"); //äänitiedosto sd-kortilta
   
   digitalWrite(sol, HIGH);  
   delay(100);   
@@ -66,13 +67,15 @@ void fire() {
   analogWrite(led2, 255);
   
   delay(1000);
+  
   sound.disable();
-  myservo.attach(servoPin);
-  for (pos = 180; pos >= 0; pos -= 5) { // goes from 180 degrees to 0 degrees
+  
+  myservo.attach(servoPin); //äänen tuottaminen loppui, voidaan taas käyttää servoa
+  for (pos = 180; pos >= 0; pos -= 5) { // servo liikkuu 180 astetta taaksepäin, nopeasti
     myservo.write(pos);
     delay(15);   
   } 
-  analogWrite(led1, 0);
+  analogWrite(led1, 0); //ledit pois päältä vasta laivan sisällä
   analogWrite(led2, 0);
   delay(1000);
 }
@@ -81,12 +84,12 @@ void fire() {
 void loop() {
   digitalWrite(sol, LOW);
   
-  buttonState = digitalRead(buttonPin);
+  //buttonState = digitalRead(buttonPin);
   solState = digitalRead(sol);
   
   //Serial.println(buttonState);
   Serial.println(buttonState);
-  if (true) {  // tests to see if laukaus mode is selected (set on as default for test) buttonState == HIGH
+  if (true) {  //käytti buttonStatea testausvaiheessa, nyt loopilla niin kauan kuin virta päällä
     
     cannonsOut();
   
